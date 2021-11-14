@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{parts/boilerplate :: layout(~{::title},~{::div})}">
+<head>
+    <meta charset="UTF-8">
+    <title>상세 보기</title>
+</head>
+<div class="row">
+    <link rel="stylesheet" href="/css/stars.css" />
+    <div class="col-6">
+        <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item" th:each="picture, i : ${location.pictures}" th:classappend="${i.index} == 0 ? 'active' : ' '">
+                    <img th:src="${picture.address}" src="..." class="d-block w-100" alt="...">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title" th:text="${location.title}">
+                    타이틀
+                </h5>
+                <p class="card-text" th:text="${location.content}">
+                    내용
+                </p>
+            </div>
+            <div class="card-body" th:if="${location.user.userId == session?.loginUser?.userId}">
+                <a class="card-link btn btn-info text-white"
+                   href="#" th:href="|/location/${location.locationId}/edit|">수정하기</a>
+                <form class="d-inline" action method="POST" th:method="delete">
+                    <button class="btn btn-danger">삭제하기</button>
+                </form>
+            </div>
+            <div class="card-footer text-muted">
+                <a href="/">전체보기</a>
+            </div>
+        </div>
+        <!-- campgrounds/:id/reviews -->
+    </div>
+    <div class="col-6">
+        <div id="map" style="width:100%;height:350px;" class="mb-5"></div>
+
+        <form th:action="|/location/${location.locationId}/review|" th:object="${review}" class="mb-3" method="POST"
+              novalidate th:if="${session.loginUser != null}">
+            <!-- <div class="mb-3">
+                <label class="form-label" for="rating">Rating</label>
+                <input class="form-range" type="range" min="1" max="5" id="rating" name="review[rating]">
+            </div> -->
+            <div class="mb-3">
+                <fieldset class="starability-heartbeat">
+                    <input type="radio" id="no-rate" class="input-no-rate" name="star[]" value="1"
+                           checked aria-label="No rating."/>
+                    <input type="radio" id="first-rate1" name="star[]" value="1"/>
+                    <label for="first-rate1" title="Terrible">1 star</label>
+                    <input type="radio" id="first-rate2" name="star[]" value="2"/>
+                    <label for="first-rate2" title="Not good">2 stars</label>
+                    <input type="radio" id="first-rate3" name="star[]" value="3"/>
+                    <label for="first-rate3" title="Average">3 stars</label>
+                    <input type="radio" id="first-rate4" name="star[]" value="4"/>
+                    <label for="first-rate4" title="Very good">4 stars</label>
+                    <input type="radio" id="first-rate5" name="star[]" value="5"/>
+                    <label for="first-rate5" title="Amazing">5 stars</label>
+                </fieldset>
+            </div>
+            <div class="mb-3" >
+                <label class="form-label" for="body">Review Text</label>
+                <textarea class="form-control" type="text" id="body" th:field="*{content}" th:classappend="${error} ? 'field-error' : ''"></textarea>
+                <div class="field-error" th:if="${error}">
+                    내용이 비어있거나 100자를 넘었습니다. 다시 입력해주세요.
+                </div>
+            </div>
+            <button class="btn btn-success">Submit</button>
+        </form>
+
+        <div class="card mb-3" th:each="review : ${location.reviews}">
+            <div class="card-body">
+                <h5 class="card-title" th:text="${review.user.name}">
+                    작성자
+                </h5>
+                <p class="starability-result" th:data-rating="${review.star}" data-rating="1">
+                    Rated: 1 stars
+                </p>
+                </h6>
+                <p class="card-text" th:text="${review.content}">
+                    Review: 리뷰내용
+                </p>
+                <form th:if="${review.user.email == session?.loginUser?.email}" action="#" method="POST" th:action="|/location/${location.locationId}/review/${review.reviewId}|" th:method="delete">
+                    <button class="btn btn-sm btn-danger" type="submit">DELETE</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a6d69fc6e0116ccd619eee55f1e79d6e&libraries=services"></script>
+    <script th:inline="javascript">
+        var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+            mapOption = {
+                center: new kakao.maps.LatLng([[${location.addrY}]], [[${location.addrX}]]), // 지도의 중심좌표
+                level: 5 // 지도의 확대 레벨
+            };
+
+        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+        // 마커가 표시될 위치입니다
+        var markerPosition  = new kakao.maps.LatLng([[${location.addrY}]], [[${location.addrX}]]);
+
+        // 마커를 생성합니다
+        var marker = new kakao.maps.Marker({
+            position: markerPosition
+        });
+
+        marker.setMap(map);
+
+        var iwContent = `<div style="padding:5px;">${[[${location.title}]]}<br></div>`, // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
+            iwPosition = new kakao.maps.LatLng([[${location.addrY}]], [[${location.addrX}]]); //인포윈도우 표시 위치입니다
+
+        // 인포윈도우를 생성합니다
+        var infowindow = new kakao.maps.InfoWindow({
+            position : iwPosition,
+            content : iwContent
+        });
+
+        infowindow.open(map, marker);
+    </script>
+</div>

@@ -1,0 +1,139 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{parts/boilerplate :: layout(~{::title},~{::div})}">
+<head>
+    <title>새글 쓰기</title>
+</head>
+        <div class="row mb-3">
+            <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a6d69fc6e0116ccd619eee55f1e79d6e&libraries=services"></script>
+            <h1 class="text-center pb-5">글 쓰기</h1>
+            <div class="col-md-6 overflow-hidden">
+                <div id="map" style="width:700px;height:400px;"></div>
+            </div>
+            <div class="col-md-5 offset-md-1">
+                <form th:object="${locationForm}" action="/location" method="POST" novalidate class="validated-form" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label" for="title">타이틀</label>
+                        <input class="form-control" required type="text" id="title" th:field="*{title}" th:errorclass="field-error">
+                        <div class="field-error" th:errors="*{title}">
+                            제목 오류
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="location">주소</label>
+                        <input class="form-control" type="text" id="location" th:classappend="${#fields.hasErrors('x') or #fields.hasErrors('y')} ? 'field-error' : ''">
+                        <input class="form-control" type="text" id="coords" required disabled >
+                        <input type="hidden" name="x" id="x" th:field="*{x}" th:errorclass="field-error"/>
+                        <input type="hidden" name="y" id="y" th:field="*{y}"/>
+                        <div class="field-error" th:errors="*{x}">
+                            좌표 오류
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-sm btn-info" id="addrSearch">검색하기</button>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="description">내용</label>
+                        <textarea class="form-control" type="text" id="description" th:field="*{content}"
+                                  required th:errorclass="field-error"></textarea>
+                        <div class="field-error" th:errors="*{content}">
+                            내용 오류
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="formFileMultiple" class="form-label">이미지 넣기</label>
+                        <input class="form-control" type="file" id="formFileMultiple" multiple name="pictures" th:field="*{pictures}" th:errorclass="field-error">
+                        <div class="field-error" th:errors="*{pictures}">
+                            이미지 오류
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-primary" type="submit">작성하기</button>
+                        <a href="/" class="btn btn-danger">취소</a>
+                    </div>
+                </form>
+            </div>
+            <script>
+
+                const addrButton = document.querySelector('#addrSearch');
+                const input = document.querySelector('#location');
+                const coords = document.querySelector('#coords');
+                const x = document.querySelector('#x');
+                const y = document.querySelector('#y');
+
+                addrButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    markersInit();
+                    ps.keywordSearch(input.value, placesSearchCB);
+                })
+
+                var infowindow = new kakao.maps.InfoWindow({zIndex:1});
+
+                var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+                    mapOption = {
+                        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
+                        level: 3 // 지도의 확대 레벨
+                    };
+
+                // 지도를 생성합니다
+                var map = new kakao.maps.Map(mapContainer, mapOption);
+
+                // 장소 검색 객체를 생성합니다
+                var ps = new kakao.maps.services.Places();
+
+                // 키워드로 장소를 검색합니다
+
+                const markers = [];
+
+                function markersInit() {
+                    for (let i = 0; i < markers.length; i++) {
+                        markers[i].setMap(null);
+                    }
+                }
+
+                // 키워드 검색 완료 시 호출되는 콜백함수 입니다
+                function placesSearchCB (data, status, pagination) {
+                    if (status === kakao.maps.services.Status.OK) {
+
+                        // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
+                        // LatLngBounds 객체에 좌표를 추가합니다
+                        var bounds = new kakao.maps.LatLngBounds();
+
+                        for (var i=0; i<data.length; i++) {
+                            displayMarker(data[i]);
+                            bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x));
+                        }
+
+                        // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
+                        map.setBounds(bounds);
+                    }
+                }
+
+                function infoOnclickHandler(e) {
+                    const value = e.innerText
+                    coords.value = value;
+                }
+
+                // 지도에 마커를 표시하는 함수입니다
+                function displayMarker(place) {
+
+                    // 마커를 생성하고 지도에 표시합니다
+                    var marker = new kakao.maps.Marker({
+                        map: map,
+                        position: new kakao.maps.LatLng(place.y, place.x)
+                    });
+                    markers.push(marker);
+                    // 마커에 클릭이벤트를 등록합니다
+                    kakao.maps.event.addListener(marker, 'click', function() {
+                        // 마커를 클릭하면 장소명이 인포윈도우에 표출됩니다
+                        infowindow.setContent('<div style="padding:5px;font-size:12px;text-align: center">' + `${place.place_name}` + '</div>');
+                        infowindow.open(map, marker);
+                        const value = place.place_name;
+                        coords.value = value;
+                        x.value = place.x;
+                        y.value = place.y;
+                        console.log(place.x + ' ' + place.y);
+                    });
+                }
+            </script>
+        </div>
+</html>

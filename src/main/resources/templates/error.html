@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{parts/boilerplate :: layout(~{::title},~{::div})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Not Good</title>
+</head>
+    <div class="container">
+        <div class="p-5 mb-4 bg-light rounded-3">
+            <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold">문제가 발생했습니다.</h1>
+                <p class="col-md-8 fs-4">잘못된 요청이거나 요청을 처리하는 도중 문제가 발생하였습니다.</p>
+                <a class="btn btn-primary btn-lg" type="button" href="/">Home으로 되돌아가기</a>
+            </div>
+        </div>
+    </div>
+</html>

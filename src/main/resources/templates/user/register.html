@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{parts/boilerplate :: layout(~{::title},~{::div})}">
+<head>
+    <title>회원 가입</title>
+</head>
+<div class="container d-flex justify-content-center align-items-center mt-5">
+    <div class="row w-100">
+        <div class="col-md-6 offset-md-3 col-xl-4 offset-xl-4">
+            <div class="card shadow mb-5">
+                <img src="https://source.unsplash.com/collection/3323931/800x800"
+                     class="card-img-top" alt="">
+                <div class="card-body">
+                    <h5 class="card-title">회원가입</h5>
+                    <form action="/register" method="POST" class="validated-form" th:object="${userForm}" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label" for="username">Username</label>
+                            <input class="form-control" type="text" id="username" name="username" required th:field="*{name}"
+                                th:errorclass="field-error">
+                            <div class="field-error" th:errors="*{name}">
+                                이름 오류
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="email">Email</label>
+                            <input class="form-control" type="email" id="email" name="email" required th:field="*{email}"
+                                   th:errorclass="field-error">
+                            <div class="field-error" th:errors="*{email}">
+                                이메일 오류
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="password">Password</label>
+                            <input class="form-control" type="password" id="password" name="password" required th:field="*{password}">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-block">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>
