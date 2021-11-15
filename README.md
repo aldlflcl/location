@@ -14,7 +14,10 @@
   - #### Gradle
   - #### Docker
   - #### ImageServer(Cloudinary)
-
+  
+  - #### etc
+    - oracle과 app을 도커 이미지화 네이버 클라우드 VM에서 컨테이너 실행중
+    - Public IP: http://101.101.218.129/
 ---
  - ## 주요 기능
     - #### 회원가입
